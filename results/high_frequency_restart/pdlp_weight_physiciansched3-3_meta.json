@@ -1,0 +1,29 @@
+{
+  "problem": {
+    "name": "physiciansched3-3.mps",
+    "rows": 266227,
+    "cols": 79555,
+    "nnz": 1062479,
+    "row_type_counts": {
+      "E": 319,
+      "G": 6567,
+      "L": 259341
+    },
+    "c_norm": 1.0,
+    "b_norm": 44044.67602332886,
+    "rhs_nonzero": 168716,
+    "finite_lower_bounds": 79554,
+    "finite_upper_bounds": 73761
+  },
+  "operator_norm_estimate": 34290.57650520585,
+  "eta": 2.6246277891051667e-05,
+  "max_iter": 1000,
+  "restart_every": 10,
+  "log_every": 10,
+  "theta": 0.5,
+  "truncate_factor": 2.0,
+  "eps_zero": 1e-12,
+  "norm_iters": 30,
+  "seed": 0,
+  "csv": "results\\high_frequency_restart\\pdlp_weight_physiciansched3-3_history.csv"
+}

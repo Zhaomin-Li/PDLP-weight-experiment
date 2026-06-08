@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.DS_Store
+Thumbs.db
+tools/
+gh_*.msi
+gh_*.zip
+gh_install.log
+results/smoke/
+results/adaptive_smoke/

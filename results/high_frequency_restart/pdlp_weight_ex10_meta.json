@@ -1,0 +1,28 @@
+{
+  "problem": {
+    "name": "ex10",
+    "rows": 69608,
+    "cols": 17680,
+    "nnz": 1162000,
+    "row_type_counts": {
+      "E": 200,
+      "L": 69408
+    },
+    "c_norm": 132.9661611087573,
+    "b_norm": 14.142135623730951,
+    "rhs_nonzero": 200,
+    "finite_lower_bounds": 17680,
+    "finite_upper_bounds": 17680
+  },
+  "operator_norm_estimate": 42.62813585014406,
+  "eta": 0.02111281626679339,
+  "max_iter": 1000,
+  "restart_every": 10,
+  "log_every": 10,
+  "theta": 0.5,
+  "truncate_factor": 2.0,
+  "eps_zero": 1e-12,
+  "norm_iters": 30,
+  "seed": 0,
+  "csv": "results\\high_frequency_restart\\pdlp_weight_ex10_history.csv"
+}

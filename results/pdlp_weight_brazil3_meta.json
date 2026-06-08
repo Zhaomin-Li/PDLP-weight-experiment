@@ -1,0 +1,29 @@
+{
+  "problem": {
+    "name": "brazil3.mps",
+    "rows": 14646,
+    "cols": 23968,
+    "nnz": 133184,
+    "row_type_counts": {
+      "E": 9486,
+      "G": 1371,
+      "L": 3789
+    },
+    "c_norm": 1.0,
+    "b_norm": 8299.036028358956,
+    "rhs_nonzero": 2779,
+    "finite_lower_bounds": 23968,
+    "finite_upper_bounds": 23874
+  },
+  "operator_norm_estimate": 29.899814151340898,
+  "eta": 0.030100521543196222,
+  "max_iter": 5000,
+  "restart_every": 100,
+  "log_every": 100,
+  "theta": 0.5,
+  "truncate_factor": 2.0,
+  "eps_zero": 1e-12,
+  "norm_iters": 30,
+  "seed": 0,
+  "csv": "results\\pdlp_weight_brazil3_history.csv"
+}

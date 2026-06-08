@@ -1,0 +1,32 @@
+{
+  "problem": {
+    "name": "rmine15.mps.gz",
+    "rows": 358395,
+    "cols": 42438,
+    "nnz": 879732,
+    "row_type_counts": {
+      "L": 358395
+    },
+    "c_norm": 85.57655590662335,
+    "b_norm": 61618.78771933119,
+    "rhs_nonzero": 30,
+    "finite_lower_bounds": 42438,
+    "finite_upper_bounds": 42438
+  },
+  "operator_norm_estimate": 8822.130759013864,
+  "eta": 0.00010201617098912755,
+  "max_iter": 1000,
+  "restart_mode": "adaptive",
+  "restart_every": 100,
+  "restart_check_frequency": 40,
+  "beta_sufficient": 0.9,
+  "beta_necessary": 0.1,
+  "beta_artificial": 0.5,
+  "log_every": 100,
+  "theta": 0.5,
+  "truncate_factor": 2.0,
+  "eps_zero": 1e-12,
+  "norm_iters": 30,
+  "seed": 0,
+  "csv": "results\\adaptive_restart_1000\\pdlp_weight_rmine15_history.csv"
+}
