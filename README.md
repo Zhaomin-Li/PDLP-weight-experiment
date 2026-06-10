@@ -41,7 +41,57 @@ omega_new / omega_old in [1/2, 2]
 无截断
 ```
 
+## normalized duality gap 的转化
+
+adaptive restart criteria 里需要计算 normalized duality gap。代码中的 saddle function 对应：
+
+```text
+L(x, y) = c^T x + y^T(q - Kx)
+```
+
+其中代码里使用符号变换统一处理 `<=` 和 `>=` 约束：
+
+```python
+k_x(x) = sign * (A @ x)
+kt_y(y) = A.T @ (sign * y)
+q = sign * b
+```
+
+因此可以把代码里的 `k_x(x)` 理解为数学上的 `Kx`，把 `kt_y(y)` 理解为 `K^T y`。
+
+normalized duality gap 需要看局部 saddle gap。令：
+
+```text
+x_hat = x + Delta_x
+y_hat = y + Delta_y
+```
+
+则有：
+
+```text
+L(x, y_hat) - L(x_hat, y)
+  = (K^T y - c)^T Delta_x + (q - Kx)^T Delta_y
+```
+
+所以原本关于 saddle function 的最大化，可以转成关于 `Delta_x, Delta_y` 的线性最大化：
+
+```text
+max  (K^T y - c)^T Delta_x + (q - Kx)^T Delta_y
+```
+
+约束为：
+
+```text
+x + Delta_x in X
+y + Delta_y in Y
+omega ||Delta_x||^2 + (1 / omega) ||Delta_y||^2 <= r^2
+```
+
+这正是代码里 `_bounded_ball_linear_max` 求解的问题。这样转化的好处是：目标函数变成线性的，约束是 box/cone 与 weighted ball 的交集，可以通过一维二分找到满足 ball 半径的拉格朗日乘子，而不需要直接处理原始 saddle function 的差值形式。
+
 ## 运行示例
+
+adaptive restart：
 
 ```powershell
 python .\pdlp_weight_experiment.py `
