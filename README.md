@@ -87,7 +87,15 @@ y + Delta_y in Y
 omega ||Delta_x||^2 + (1 / omega) ||Delta_y||^2 <= r^2
 ```
 
-这正是代码里 `_bounded_ball_linear_max` 求解的问题。这样转化的好处是：目标函数变成线性的，约束是 box/cone 与 weighted ball 的交集，可以通过一维二分找到满足 ball 半径的拉格朗日乘子，而不需要直接处理原始 saddle function 的差值形式。
+这正是代码里 `_bounded_ball_linear_max` 求解的问题。这样转化的好处是：目标函数变成线性的，约束是 box/cone 与 weighted ball 的交集。
+
+代码求解这个 max 子问题时，使用的是 **KKT 条件 + 一维二分** 的思路：先对 weighted ball 约束引入拉格朗日乘子 `lambda`。当 `lambda` 固定时，`Delta_x` 和 `Delta_y` 的最优解可以写成对 box/cone 约束的逐坐标投影；同时 weighted ball 半径关于 `lambda` 单调变化。因此可以对 `lambda` 做二分，找到使
+
+```text
+omega ||Delta_x||^2 + (1 / omega) ||Delta_y||^2 = r^2
+```
+
+成立的乘子。这样就不用直接处理原始 saddle function 的差值最大化，而是求一个结构更简单的投影型线性最大化问题。
 
 ## 运行示例
 
