@@ -1,0 +1,32 @@
+{
+  "problem": {
+    "name": "NEWLP15",
+    "rows": 6330,
+    "cols": 22275,
+    "nnz": 94950,
+    "row_type_counts": {
+      "E": 6330
+    },
+    "c_norm": 3509.0283555423143,
+    "b_norm": 0.0,
+    "rhs_nonzero": 0,
+    "finite_lower_bounds": 22275,
+    "finite_upper_bounds": 0
+  },
+  "operator_norm_estimate": 9.82906695015055,
+  "eta": 0.09156515105294048,
+  "max_iter": 1000,
+  "restart_mode": "fixed",
+  "restart_every": 10,
+  "restart_check_frequency": 40,
+  "beta_sufficient": 0.9,
+  "beta_necessary": 0.1,
+  "beta_artificial": 0.5,
+  "log_every": 10,
+  "theta": 0.5,
+  "truncate_factor": 2.0,
+  "eps_zero": 1e-12,
+  "norm_iters": 30,
+  "seed": 0,
+  "csv": "results\\high_frequency_restart\\pdlp_weight_qap15_history.csv"
+}

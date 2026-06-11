@@ -29,7 +29,7 @@ log omega_new = log omega_old
 
 ## benchmark 适配性
 
-`qap15.mps` 不纳入正式对照。原因是它的 RHS 全零，`||q||=0`，论文初始化和新初始化都会回退到 `omega0=1`；同时它全是等式约束，在当前简化 PDHG 脚本里不能有效检验 primal weight 的初始化或截断行为。
+`qap15.mps` 已重新尝试，但不纳入正式结论。原因是它的 RHS 全零，`||q||=0`，论文初始化和新初始化都会回退到 `omega0=1`；同时目标系数非负、变量默认下界为 0，因此 `x=0,y=0` 在当前连续松弛实验中就是平凡固定点。固定周期 restart、高频 restart 和 adaptive restart 三种模式下，四组结果均为 `objective=0, primal_rel=0, dual_fp_rel=0, omega=1`，无法检验 primal weight 初始化或截断行为。
 
 `rmine15.mps` 纳入正式对照。它规模适中，只有 `L` 约束，RHS 非零但很稀疏，适合补充一个和 `brazil3/physiciansched3-3` 不同结构的样本。不过它的有效初始点仍是零，因此只能测试截断 update C，不能测试新初始化 B。
 

@@ -153,7 +153,7 @@ def project_box(x: np.ndarray, lb: np.ndarray, ub: np.ndarray) -> np.ndarray:
     return np.minimum(np.maximum(x, lb), ub)
 
 
-def estimate_operator_norm(A: sparse.csr_matrix, seed: int, iterations: int) -> float:
+def estimate_operator_norm(A: sparse.csr_matrix, seed: int, iterations: int) -> float:# 估计矩阵范数
     rng = np.random.default_rng(seed)
     v = rng.standard_normal(A.shape[1])
     v /= np.linalg.norm(v)
@@ -178,7 +178,7 @@ class Variant:
     truncated_update: bool
 
 
-def weighted_distance(
+def weighted_distance( # 论文中带权距离
     x_a: np.ndarray,
     y_a: np.ndarray,
     x_b: np.ndarray,
@@ -190,10 +190,10 @@ def weighted_distance(
     return math.sqrt(omega * float(dx @ dx) + (1.0 / omega) * float(dy @ dy))
 
 
-def _bounded_ball_linear_max(
+def _bounded_ball_linear_max( # 解duality gap中的最大化问题，KKT+二分近似求解（见README)
     blocks: list[tuple[np.ndarray, np.ndarray, np.ndarray, float]],
     radius: float,
-    iterations: int = 50,
+    iterations: int = 50, #默认迭代50次
 ) -> float:
     """Maximize a linear form over box constraints and a weighted Euclidean ball."""
     if radius <= 0.0 or not math.isfinite(radius):
