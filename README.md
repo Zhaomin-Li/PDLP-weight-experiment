@@ -89,13 +89,32 @@ omega ||Delta_x||^2 + (1 / omega) ||Delta_y||^2 <= r^2
 
 这正是代码里 `_bounded_ball_linear_max` 求解的问题。这样转化的好处是：目标函数变成线性的，约束是 box/cone 与 weighted ball 的交集。
 
-代码求解这个 max 子问题时，使用的是 **KKT 条件 + 一维二分** 的思路：先对 weighted ball 约束引入拉格朗日乘子 `lambda`。当 `lambda` 固定时，`Delta_x` 和 `Delta_y` 的最优解可以写成对 box/cone 约束的逐坐标投影；同时 weighted ball 半径关于 `lambda` 单调变化。因此可以对 `lambda` 做二分，找到使
+代码求解这个 max 子问题时，使用的是 **KKT 条件 + 一维二分** 的思路。先对 weighted ball 约束引入拉格朗日乘子 `lambda`。KKT 条件给出：
+
+```text
+lambda >= 0
+omega ||Delta_x(lambda)||^2 + (1 / omega) ||Delta_y(lambda)||^2 <= r^2
+lambda * (omega ||Delta_x(lambda)||^2 + (1 / omega) ||Delta_y(lambda)||^2 - r^2) = 0
+```
+
+如果 ball 约束不活跃，则 `lambda=0`，最优解主要由 box/cone 约束决定；如果 ball 约束活跃，则 `lambda>0`，并且必须有：
 
 ```text
 omega ||Delta_x||^2 + (1 / omega) ||Delta_y||^2 = r^2
 ```
 
-成立的乘子。这样就不用直接处理原始 saddle function 的差值最大化，而是求一个结构更简单的投影型线性最大化问题。
+当 `lambda` 固定时，`Delta_x` 和 `Delta_y` 的最优解可以写成对 box/cone 约束的逐坐标投影。定义：
+
+```text
+phi(lambda) = omega ||Delta_x(lambda)||^2 + (1 / omega) ||Delta_y(lambda)||^2
+```
+
+随着 `lambda` 变大，投影步长会变小，因此 `phi(lambda)` 单调下降。代码先找一个足够大的 `high`，使得 `phi(high) <= r^2`；然后对 `lambda` 做二分：
+
+- 如果 `phi(mid) > r^2`，说明步子太大，`lambda` 太小，于是增大下界 `low = mid`；
+- 如果 `phi(mid) <= r^2`，说明步子已经在球内，可以尝试更小的 `lambda`，于是令 `high = mid`。
+
+最后得到的 `high` 就是近似的 KKT 乘子。这样就不用直接处理原始 saddle function 的差值最大化，而是求一个结构更简单的投影型线性最大化问题。
 
 ## 运行示例
 

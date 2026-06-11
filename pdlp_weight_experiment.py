@@ -190,16 +190,22 @@ def weighted_distance( # 论文中带权距离
     return math.sqrt(omega * float(dx @ dx) + (1.0 / omega) * float(dy @ dy))
 
 
-def _bounded_ball_linear_max( # 解duality gap中的最大化问题，KKT+二分近似求解（见README)
+def _bounded_ball_linear_max(
     blocks: list[tuple[np.ndarray, np.ndarray, np.ndarray, float]],
     radius: float,
-    iterations: int = 50, #默认迭代50次
+    iterations: int = 50,
 ) -> float:
-    """Maximize a linear form over box constraints and a weighted Euclidean ball."""
+    """Solve the duality-gap subproblem by KKT conditions plus bisection.
+
+    For fixed lambda, the KKT stationarity gives a clipped/projection step.
+    The weighted norm phi(lambda) is monotone decreasing in lambda, so bisection
+    finds the multiplier whose step lies on the ball boundary.
+    """
     if radius <= 0.0 or not math.isfinite(radius):
         return 0.0
 
     def norm_sq(lambda_value: float) -> float:
+        # phi(lambda): weighted squared norm of the projected KKT step.
         total = 0.0
         for gradient, lower, upper, weight in blocks:
             step = gradient / (2.0 * lambda_value * weight)
@@ -209,6 +215,7 @@ def _bounded_ball_linear_max( # 解duality gap中的最大化问题，KKT+二分
 
     high = 1.0
     radius_sq = radius * radius
+    # First find a large enough lambda so the KKT step is inside the ball.
     while norm_sq(high) > radius_sq:
         high *= 2.0
         if high > 1e300:
@@ -217,6 +224,7 @@ def _bounded_ball_linear_max( # 解duality gap中的最大化问题，KKT+二分
     low = 0.0
     for _ in range(iterations):
         mid = 0.5 * (low + high)
+        # Step too large means lambda is too small; otherwise try smaller lambda.
         if mid == 0.0 or norm_sq(mid) > radius_sq:
             low = mid
         else:
