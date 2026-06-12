@@ -76,6 +76,7 @@ log omega_new = log omega_old
 - MPS 读取器只支持本实验需要的常见段，不支持 `RANGES`，也没有完整处理所有 MPS 扩展格式。
 - 整数/二进制变量只按 bounds 做连续 LP 松弛处理，这符合 LP 实验目的，但不是 MIP 求解。
 - 非有限数保护是实验工程保护，不是论文算法的一部分。
+- normalized duality gap 的局部最大化子问题使用 Python/NumPy 中的 KKT + 一维二分实现，目的是复现实验逻辑；它不是论文工程实现中的高性能版本。
 
 adaptive restart 实现说明：
 
@@ -140,6 +141,8 @@ adaptive restart 实现说明：
 ## 论文 adaptive restart criteria 实验结果
 
 `ex10.mps` 和 `brazil3.mps` 跑 5000 次迭代；`rmine15.mps` 和 `physiciansched3-3.mps` 因 normalized duality gap 检查在 Python 中开销较大，先跑 1000 次迭代。`rmine15.mps` 的 5000 次 adaptive 实验超过 10 分钟未完成。
+
+下表结果已使用显式外循环 + 内循环版本重新生成；数值与重构前保持一致。
 
 | benchmark | 组别 | 迭代数 | restart 次数 | 初始 omega | 目标值 | primal_rel | dual_fp_rel | 最终 omega |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
