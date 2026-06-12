@@ -33,7 +33,7 @@ def _pairs(tokens: list[str]) -> Iterable[tuple[str, float]]:
 
 
 def read_mps(path: Path) -> MpsLp:
-    """Read the subset of free-format MPS needed by the experiment benchmark."""
+    """读取本实验 benchmark 需要的 free-format MPS 子集。"""
     name = path.stem
     section = None
     objective_row = None
@@ -153,7 +153,7 @@ def project_box(x: np.ndarray, lb: np.ndarray, ub: np.ndarray) -> np.ndarray:
     return np.minimum(np.maximum(x, lb), ub)
 
 
-def estimate_operator_norm(A: sparse.csr_matrix, seed: int, iterations: int) -> float:# 估计矩阵范数
+def estimate_operator_norm(A: sparse.csr_matrix, seed: int, iterations: int) -> float:  # 估计矩阵范数
     rng = np.random.default_rng(seed)
     v = rng.standard_normal(A.shape[1])
     v /= np.linalg.norm(v)
@@ -178,7 +178,7 @@ class Variant:
     truncated_update: bool
 
 
-def weighted_distance( # 论文中带权距离
+def weighted_distance(  # 论文中的带权距离
     x_a: np.ndarray,
     y_a: np.ndarray,
     x_b: np.ndarray,
@@ -195,17 +195,17 @@ def _bounded_ball_linear_max(
     radius: float,
     iterations: int = 50,
 ) -> float:
-    """Solve the duality-gap subproblem by KKT conditions plus bisection.
+    """用 KKT 条件和一维二分求解 duality gap 中的子问题。
 
-    For fixed lambda, the KKT stationarity gives a clipped/projection step.
-    The weighted norm phi(lambda) is monotone decreasing in lambda, so bisection
-    finds the multiplier whose step lies on the ball boundary.
+    固定 lambda 后，KKT stationarity 给出一个截断/投影步。
+    带权范数 phi(lambda) 随 lambda 单调下降，因此可以用二分找到
+    使步长落在 weighted ball 边界上的乘子。
     """
     if radius <= 0.0 or not math.isfinite(radius):
         return 0.0
 
     def norm_sq(lambda_value: float) -> float:
-        # phi(lambda): weighted squared norm of the projected KKT step.
+        # phi(lambda)：投影 KKT 步的带权平方范数。
         total = 0.0
         for gradient, lower, upper, weight in blocks:
             step = gradient / (2.0 * lambda_value * weight)
@@ -215,7 +215,7 @@ def _bounded_ball_linear_max(
 
     high = 1.0
     radius_sq = radius * radius
-    # First find a large enough lambda so the KKT step is inside the ball.
+    # 先找一个足够大的 lambda，使 KKT 步落在 ball 内。
     while norm_sq(high) > radius_sq:
         high *= 2.0
         if high > 1e300:
@@ -224,7 +224,7 @@ def _bounded_ball_linear_max(
     low = 0.0
     for _ in range(iterations):
         mid = 0.5 * (low + high)
-        # Step too large means lambda is too small; otherwise try smaller lambda.
+        # 步子太大说明 lambda 太小；否则尝试更小的 lambda。
         if mid == 0.0 or norm_sq(mid) > radius_sq:
             low = mid
         else:
