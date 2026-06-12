@@ -155,3 +155,19 @@ python .\pdlp_weight_experiment.py `
 ```
 
 更详细的实验结果和限制见 `experiment_summary.md`。
+
+## 迭代结构
+
+代码现在使用和论文伪代码更接近的双重循环：
+
+```text
+while 总迭代数未达到 max_iter:
+    开始一个 restart epoch
+    while 当前 epoch 未触发 restart:
+        做一次 PDHG 更新
+        更新 weighted average
+        检查 fixed/adaptive restart 条件
+    restart 后更新 primal weight，并进入下一个 epoch
+```
+
+外循环对应 restart epoch，内循环对应两个 restart 之间的 PDHG 迭代。这样写比单循环更贴近论文结构，也让 `inner_iteration`、weighted average、restart candidate 和 primal weight update 的关系更清楚。

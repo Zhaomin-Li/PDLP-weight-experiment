@@ -10,3 +10,4 @@ gh_*.zip
 gh_install.log
 results/smoke/
 results/adaptive_smoke/
+results/double_loop_smoke/

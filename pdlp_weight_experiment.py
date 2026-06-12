@@ -374,12 +374,12 @@ def run_variant(
                 raw_delta = min(max(raw_delta, -truncate_log), truncate_log)
             omega = math.exp(log_omega + raw_delta)
 
-    def adaptive_restart_if_needed(iteration: int, inner_iteration: int) -> tuple[bool, int]:
+    def adaptive_restart_if_needed(iteration: int, inner_iteration: int) -> bool:
         nonlocal restart_count
         nonlocal x, y, x_restart, y_restart, x_previous_restart, y_previous_restart
         nonlocal reference_gap, previous_candidate_gap, average_weight, x_average_sum, y_average_sum
-        if restart_check_frequency <= 0 or iteration % restart_check_frequency != 0 or inner_iteration <= 0:
-            return False, inner_iteration
+        if restart_check_frequency <= 0 or inner_iteration % restart_check_frequency != 0 or inner_iteration <= 0:
+            return False
 
         x_average = x_average_sum / average_weight
         y_average = y_average_sum / average_weight
@@ -400,7 +400,7 @@ def run_variant(
         previous_candidate_gap = candidate_gap
 
         if not (sufficient or necessary or artificial):
-            return False, inner_iteration
+            return False
 
         old_x_restart = x_restart
         old_y_restart = y_restart
@@ -420,37 +420,53 @@ def run_variant(
         average_weight = 0.0
         x_average_sum = np.zeros_like(x)
         y_average_sum = np.zeros_like(y)
-        return True, 0
+        return True
 
     record(0)
-    inner_iteration = 0
-    for iteration in range(1, max_iter + 1):
-        grad_x = c - kt_y(y)
-        x_next = project_box(x - (eta / omega) * grad_x, lb, ub)
-        extrapolated = 2.0 * x_next - x
-        y_next = project_y(y + eta * omega * (q - k_x(extrapolated)))
-        x = x_next
-        y = y_next
-        inner_iteration += 1
+    iteration = 0
+    stopped = False
+    while iteration < max_iter and not stopped:
+        inner_iteration = 0
         if restart_mode == "adaptive":
-            average_weight += eta
-            x_average_sum += eta * x
-            y_average_sum += eta * y
+            average_weight = 0.0
+            x_average_sum = np.zeros_like(x)
+            y_average_sum = np.zeros_like(y)
 
-        if not np.all(np.isfinite(x)) or not np.all(np.isfinite(y)) or not math.isfinite(omega):
-            record(iteration)
-            break
+        while iteration < max_iter:
+            grad_x = c - kt_y(y)
+            x_next = project_box(x - (eta / omega) * grad_x, lb, ub)
+            extrapolated = 2.0 * x_next - x
+            y_next = project_y(y + eta * omega * (q - k_x(extrapolated)))
+            x = x_next
+            y = y_next
+            iteration += 1
+            inner_iteration += 1
 
-        if restart_mode == "fixed" and restart_every > 0 and iteration % restart_every == 0:
-            update_weight_from_restart_candidate(x, y)
-            x_restart = x.copy()
-            y_restart = y.copy()
-            restart_count += 1
-        elif restart_mode == "adaptive":
-            restarted, inner_iteration = adaptive_restart_if_needed(iteration, inner_iteration)
+            if restart_mode == "adaptive":
+                average_weight += eta
+                x_average_sum += eta * x
+                y_average_sum += eta * y
 
-        if iteration % log_every == 0 or iteration == max_iter:
-            record(iteration)
+            if not np.all(np.isfinite(x)) or not np.all(np.isfinite(y)) or not math.isfinite(omega):
+                record(iteration)
+                stopped = True
+                break
+
+            should_restart = False
+            if restart_mode == "fixed" and restart_every > 0 and inner_iteration >= restart_every:
+                update_weight_from_restart_candidate(x, y)
+                x_restart = x.copy()
+                y_restart = y.copy()
+                restart_count += 1
+                should_restart = True
+            elif restart_mode == "adaptive":
+                should_restart = adaptive_restart_if_needed(iteration, inner_iteration)
+
+            if iteration % log_every == 0 or iteration == max_iter:
+                record(iteration)
+
+            if should_restart:
+                break
     return rows_out
 
 

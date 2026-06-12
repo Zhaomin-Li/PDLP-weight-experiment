@@ -65,6 +65,7 @@ log omega_new = log omega_old
 - 论文原始初始化实现为 `omega0 = ||c|| / ||q||`，零范数时回退到 `1`。
 - 论文原始 primal weight update 实现为 log smoothing：`log omega_new = theta log(Delta_y/Delta_x) + (1-theta) log omega_old`。
 - 截断 update 只是在上述 log smoothing 的单次变化量上加上下界和上界。
+- 迭代控制流使用显式外循环和内循环：外循环对应 restart epoch，内循环对应两个 restart 之间的 PDHG steps。
 
 与论文完整 PDLP 不一致或简化的部分：
 
