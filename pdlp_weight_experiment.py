@@ -28,6 +28,7 @@ class MpsLp:
 
 
 def _pairs(tokens: list[str]) -> Iterable[tuple[str, float]]:
+    """把 MPS 一行中成对出现的名称和值解析成 `(name, value)`。"""
     for i in range(0, len(tokens), 2):
         yield tokens[i], float(tokens[i + 1])
 
@@ -50,6 +51,7 @@ def read_mps(path: Path) -> MpsLp:
     bound_records: list[tuple[str, str, float | None]] = []
 
     def get_col(var_name: str) -> int:
+        """为变量名分配列编号；如果变量第一次出现，就加入列名表。"""
         idx = col_index.get(var_name)
         if idx is None:
             idx = len(col_names)
@@ -150,10 +152,12 @@ def read_mps(path: Path) -> MpsLp:
 
 
 def project_box(x: np.ndarray, lb: np.ndarray, ub: np.ndarray) -> np.ndarray:
+    """把向量逐坐标投影到变量上下界 `[lb, ub]` 形成的 box 上。"""
     return np.minimum(np.maximum(x, lb), ub)
 
 
 def estimate_operator_norm(A: sparse.csr_matrix, seed: int, iterations: int) -> float:  # 估计矩阵范数
+    """用 power iteration 估计 `A` 的谱范数，用来设置 PDHG 步长 `eta`。"""
     rng = np.random.default_rng(seed)
     v = rng.standard_normal(A.shape[1])
     v /= np.linalg.norm(v)
@@ -185,6 +189,7 @@ def weighted_distance(  # 论文中的带权距离
     y_b: np.ndarray,
     omega: float,
 ) -> float:
+    """计算论文 restart criteria 中使用的 `omega` 带权距离。"""
     dx = x_a - x_b
     dy = y_a - y_b
     return math.sqrt(omega * float(dx @ dx) + (1.0 / omega) * float(dy @ dy))
@@ -205,6 +210,7 @@ def _bounded_ball_linear_max(
         return 0.0
 
     def norm_sq(lambda_value: float) -> float:
+        """给定 KKT 乘子 lambda，计算投影步的带权平方范数 phi(lambda)。"""
         # phi(lambda)：投影 KKT 步的带权平方范数。
         total = 0.0
         for gradient, lower, upper, weight in blocks:
@@ -254,6 +260,7 @@ def run_variant(
     truncate_log: float,
     eps_zero: float,
 ) -> list[dict[str, float | int | str]]:
+    """运行一个 variant 的简化 PDHG/PDLP 实验，并返回按迭代记录的指标。"""
     A = lp.A
     c = lp.c
     b = lp.b
@@ -267,12 +274,15 @@ def run_variant(
     q = sign * b
 
     def kt_y(y: np.ndarray) -> np.ndarray:
+        """计算统一符号后的 `K^T y`，用于 primal gradient 和 gap 子问题。"""
         return A.T @ (sign * y)
 
     def k_x(x: np.ndarray) -> np.ndarray:
+        """计算统一符号后的 `Kx`，把 MPS 的 L/G/E 行都写成同一形式。"""
         return sign * (A @ x)
 
     def project_y(y: np.ndarray) -> np.ndarray:
+        """把 dual 变量投影到 `Y`：不等式行的 dual 非负，等式行自由。"""
         y = y.copy()
         y[is_less] = np.maximum(y[is_less], 0.0)
         y[is_greater] = np.maximum(y[is_greater], 0.0)
@@ -284,6 +294,7 @@ def run_variant(
     y_upper = np.full(A.shape[0], np.inf)
 
     def weight_init(x0: np.ndarray, y0: np.ndarray) -> float:
+        """根据 variant 选择论文初始化或新初始化，得到初始 primal weight。"""
         if variant.pilot_init:
             numerator = np.linalg.norm(c - kt_y(y0))
             denominator = np.linalg.norm(q - k_x(x0))
@@ -318,6 +329,7 @@ def run_variant(
     b_norm = math.sqrt(float(b_less @ b_less) + float(b_equal @ b_equal) + float(b_greater @ b_greater))
 
     def record(iteration: int) -> None:
+        """记录当前迭代的目标值、primal residual、投影 fixed-point 指标和 omega。"""
         Ax = A @ x
         less_violation = np.maximum(Ax[is_less] - b_less, 0.0)
         eq_violation = Ax[is_equal] - b_equal
@@ -344,6 +356,7 @@ def run_variant(
         )
 
     def normalized_duality_gap(x_gap: np.ndarray, y_gap: np.ndarray, x_ref: np.ndarray, y_ref: np.ndarray) -> float:
+        """计算 adaptive restart 用的 normalized duality gap。"""
         radius = weighted_distance(x_gap, y_gap, x_ref, y_ref, omega)
         if radius <= eps_zero or not math.isfinite(radius):
             return math.inf
@@ -360,6 +373,7 @@ def run_variant(
         return value / radius
 
     def update_weight_from_restart_candidate(x_candidate: np.ndarray, y_candidate: np.ndarray) -> None:
+        """在 restart 时根据 candidate 的 primal/dual movement 更新 `omega`。"""
         nonlocal omega
         delta_x = float(np.linalg.norm(x_candidate - x_restart))
         delta_y = float(np.linalg.norm(y_candidate - y_restart))
@@ -375,6 +389,7 @@ def run_variant(
             omega = math.exp(log_omega + raw_delta)
 
     def adaptive_restart_if_needed(iteration: int, inner_iteration: int) -> bool:
+        """按论文三条 adaptive restart criteria 判断是否重启，并维护 restart 状态。"""
         nonlocal restart_count
         nonlocal x, y, x_restart, y_restart, x_previous_restart, y_previous_restart
         nonlocal reference_gap, previous_candidate_gap, average_weight, x_average_sum, y_average_sum
@@ -471,6 +486,7 @@ def run_variant(
 
 
 def summarize_problem(lp: MpsLp) -> dict[str, float | int | str]:
+    """汇总 benchmark 的规模、行类型、范数和 bounds 信息，写入 meta JSON。"""
     row_types, row_counts = np.unique(lp.row_types, return_counts=True)
     finite_ub = np.isfinite(lp.ub)
     finite_lb = np.isfinite(lp.lb)
@@ -489,10 +505,12 @@ def summarize_problem(lp: MpsLp) -> dict[str, float | int | str]:
 
 
 def safe_problem_id(path: Path) -> str:
+    """把 benchmark 文件名转成适合放进输出文件名的安全 ID。"""
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", path.stem)
 
 
 def main() -> None:
+    """命令行入口：读取 MPS、设置参数、运行四组 variant 并输出 CSV/JSON。"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--mps", type=Path, default=Path(r"C:\Users\ASUS\Desktop\ex10.mps"))
     parser.add_argument("--out-dir", type=Path, default=Path("results"))

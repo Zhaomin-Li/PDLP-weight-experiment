@@ -11,6 +11,37 @@
 
 ## 主要想法
 
+### B：初始化从数据尺度改成初始点附近的更新尺度
+
+论文原始 primal weight 初始化只看数据本身的尺度：
+
+```text
+omega0 = ||c|| / ||q||,  if ||c|| > eps_zero and ||q|| > eps_zero
+omega0 = 1,             otherwise
+```
+
+我们测试的新初始化改成看初始点 `x0, y0` 附近真正推动 primal/dual 更新的两个向量：
+
+```text
+a = ||c - K^T y0||
+b = ||q - K x0||
+
+omega0_new = a / b,  if a > eps_zero and b > eps_zero
+omega0_new = 1,      otherwise
+```
+
+这个差别的直觉是：论文初始化衡量的是原始数据尺度；新初始化衡量的是第一步附近 x 方向和 y 方向的实际更新驱动力。也就是说，它更像是从当前初始点出发估计 primal/dual movement 是否平衡。
+
+需要注意的是，如果使用严格零初始点 `x0 = 0, y0 = 0`，那么新初始化会退化成论文原始初始化：
+
+```text
+||c - K^T y0|| / ||q - Kx0|| = ||c|| / ||q||
+```
+
+因此 B 的优势主要应该在非零 warm start，或者存在非零固定变量导致 `project_box(0, lb, ub)` 不等于 0 的 benchmark 上观察。当前实验中，`physiciansched3-3.mps` 就属于这类会让 B 产生差异的例子。
+
+### C：在 log-space 中截断 primal weight update
+
 论文原始 primal weight update 使用 log smoothing。我们测试的改动是在 log-space 中对单次更新量做截断：
 
 ```text
