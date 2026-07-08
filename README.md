@@ -8,6 +8,17 @@
 - `experiment_summary.md`：实验总结、benchmark 说明、结果表格和结论。
 - `results/`：实验输出，包括 CSV 历史记录和 JSON 元信息。
 - `PDLP.pdf`：参考论文。
+- `three_scheme_comparison/`：基于 cuPDLPx 的三方案全量对比实验，包含 `baseline`、固定 `log2` 截断和当前 `signrate_selective` 选择性截断的代码、runner、all26 原始结果和实验报告。
+
+## 最新 cuPDLPx 实验
+
+当前更接近真实求解器的实验放在 `three_scheme_comparison/`。这一版只比较三个方案：
+
+- `baseline`：cuPDLPx 原始 primal weight 更新。
+- `fixed_log2`：对每次 `Delta log omega` 无条件做 `[-log2, log2]` 截断。
+- `signrate_selective`：先用“大幅更新 + 高频符号翻转”判断是否存在 omega 震荡，只有触发时才启用固定 `log2` 截断。
+
+主要结果见 `three_scheme_comparison/experiment_report.md`；逐 benchmark 数据见 `three_scheme_comparison/results/derived/comparison_all26.csv`。
 
 ## 主要想法
 

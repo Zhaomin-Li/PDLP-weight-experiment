@@ -1,0 +1,4 @@
+﻿scheme,optimal_count,time_limit_count,iteration_limit_count,total_iterations,total_runtime_sec,median_runtime_sec,mean_runtime_sec,mean_relative_gap
+baseline,19,7,0,878200,271.824,4.2980,10.455,0.0617137
+fixed_log2,19,5,2,1087200,286.998,5.0110,11.038,0.0436296
+signrate_selective,19,7,0,870600,270.512,3.9200,10.404,0.0432901
