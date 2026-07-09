@@ -18,6 +18,17 @@
 - `fixed_log2`：对每次 `Delta log omega` 无条件做 `[-log2, log2]` 截断。
 - `signrate_selective`：先用“大幅更新 + 高频符号翻转”判断是否存在 omega 震荡，只有触发时才启用固定 `log2` 截断。
 
+这一版的核心想法是：固定 `log2` 截断本身有价值，但不应该对所有 benchmark 无条件开启。无条件截断能抑制 `omega` 的剧烈来回跳动，却可能伤害那些确实需要单向大幅调整 `omega` 的问题。因此我们把固定截断改成一个选择性 safeguard：先保留 cuPDLPx 原始 primal weight update，统计历史 `Delta log omega` 是否同时满足“大幅更新”和“频繁正负反转”；只有当这两个信号都出现时，才认为 `omega` 更新更像震荡/过冲，并启用 `[-log2, log2]` 截断。
+
+当前选择器使用的是累计统计，而不是滑动窗口统计：
+
+```text
+max |Delta log omega| >= log(10)
+sign_change_rate = sign_change_count / (weight_update_count - 1) >= 0.45
+```
+
+其中 `weight_update_count` 是已经发生的 primal weight update 次数，`sign_change_count` 是相邻两次 `Delta log omega` 符号发生反转的次数。
+
 主要结果见 `three_scheme_comparison/experiment_report.md`；逐 benchmark 数据见 `three_scheme_comparison/results/derived/comparison_all26.csv`。
 
 ## 主要想法
